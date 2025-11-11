@@ -5,6 +5,14 @@ import { v4 as uuidv4 } from 'uuid'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 const GROK_API_URL = 'https://api.x.ai/v1/chat/completions'
 
+// System instructions for RP chat
+const RP_SYSTEM_PROMPT = `You are MAYA, an affectionate Tamil/Thanglish romantic chat partner (18+).
+Safety: never include minors, non-consensual or illegal content. Adults only.
+Style: WhatsApp-like messages; short, natural, flirty; use light emojis; no narration or stage directions.
+Voice: stay in-character as the AI partner; reference prior context naturally.
+Language: write in {LANGUAGE} as indicated.
+Output: a single chat reply only (no meta, no notes).`
+
 export const runtime = 'edge'
 
 async function holdEscrow(userId: string, microcredits: number, requestId: string) {
@@ -58,9 +66,9 @@ Conversation Context (recent WhatsApp-like messages):
 ${context || '(no prior history)'}
 
 You are chatting inside a private WhatsApp thread. Write replies exactly like short, natural WhatsApp texts:
-- Keep messages punchy, affectionate, and flirty but avoid explicit phone-sex narration.
+- Keep messages punchy, affectionate, and flirty explicit phone-sex narration.
 - Use casual sentence fragments, emojis, or playful pauses just like real texting.
-- Never describe physical actions in detail; focus on emotional beats, tone, and light teasing.
+- describe physical actions in detail; focus on emotional beats, tone, and teasing.
 - Mix Tamil and Thanglish naturally if the language indicates it, but keep it readable.
 - Stay strictly in character as ${ai_character?.name ?? 'AI partner'}.
 - Reference details from the ongoing conversation to make it feel continuous.
@@ -70,11 +78,11 @@ Current user message: ${user_message}
 Reply with only the AI’s WhatsApp-style response (no stage directions or explanations).`
 }
 
-async function callGrok(prompt: string, modelCode: string, maxTokens: number) {
+async function callGrokMessages(messages: any[], modelCode: string, maxTokens: number) {
   const response = await fetch(GROK_API_URL, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${process.env.XAI_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: modelCode, messages: [{ role: 'user', content: prompt }], max_tokens: maxTokens, stream: true, temperature: 0.7 })
+    body: JSON.stringify({ model: modelCode, messages, max_tokens: maxTokens, stream: true, temperature: 0.7 })
   })
   if (!response.ok) throw new Error(`Grok API error: ${response.status}`)
   return response
@@ -86,7 +94,7 @@ export async function POST(request: NextRequest) {
   let userId: string | null = null
   try {
     const body = await request.json()
-    const { feature, model_code = 'grok-4-fast', prompt_inputs, max_tokens = 800 } = body || {}
+    const { feature, prompt_inputs, max_tokens = 800 } = body || {}
     if (!feature || !prompt_inputs) return NextResponse.json({ request_id: '', status: 'error', message: 'Missing required fields' }, { status: 400 })
 
     const auth = request.headers.get('authorization')
@@ -96,7 +104,9 @@ export async function POST(request: NextRequest) {
     if (authError || !user) return NextResponse.json({ request_id: '', status: 'error', message: 'Invalid authentication' }, { status: 401 })
     userId = user.id
 
-    // Pricing: try model_code, fallback to grok-4-fast
+    // Force RP to use grok-4-fast server-side
+    const model_code = 'grok-4-fast'
+    // Pricing: try enforced model, fallback to grok-4-fast
     let { data: modelPrice } = await supabase.from('model_price').select('*').eq('code', model_code).maybeSingle()
     if (!modelPrice) {
       const fallback = await supabase.from('model_price').select('*').eq('code', 'grok-4-fast').maybeSingle()
@@ -117,7 +127,13 @@ export async function POST(request: NextRequest) {
 
     if (feature === 'rp') {
       const prompt = buildRpPrompt(prompt_inputs)
-      const streamRes = await callGrok(prompt, model_code, max_tokens)
+      const lang = (prompt_inputs?.language === 'thanglish' ? 'Thanglish' : 'Tamil')
+      const system = RP_SYSTEM_PROMPT.replace('{LANGUAGE}', lang)
+      const messages = [
+        { role: 'system', content: system },
+        { role: 'user', content: prompt },
+      ]
+      const streamRes = await callGrokMessages(messages, model_code, max_tokens)
       return new Response(streamRes.body, { headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'X-Request-ID': requestId } })
     }
 

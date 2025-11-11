@@ -50,7 +50,7 @@ export default function StoriesPage() {
       const charB = blueprint.characters.find((c: any) => c.id === rel.b)
       return { a: charA?.name || rel.a, b: charB?.name || rel.b, relation_type: rel.relation_type || 'romantic', tension_level: rel.tension_level || 5 }
     })
-    const payload = { situation: blueprint.situation, phase: blueprint.phase, read_minutes: blueprint.read_minutes, language: blueprint.language, tone: blueprint.tone || 'romantic', characters: (blueprint.characters || []).map((c: any) => ({ name: c.name, gender: c.gender, traits: c.traits || {} })), relationships }
+    const payload = { situation: blueprint.situation, phase: blueprint.phase, read_minutes: blueprint.read_minutes, language: blueprint.language, tone: blueprint.tone || 'romantic', characters: (blueprint.characters || []).map((c: any) => ({ name: c.name, role: c.role, gender: c.gender, traits: c.traits || {} })), relationships }
     const res = await fetch('/api/stories/blueprint', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(payload) })
     const json = await res.json()
     if (!res.ok || !json.success) throw new Error(json.message || 'Failed to save blueprint')

@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
   let userId: string | null = null
   try {
     const body = await request.json()
-    const { output_id, model_code = 'grok-4', max_tokens } = body
+    const { output_id, max_tokens } = body
     if (!output_id) return NextResponse.json({ success: false, message: 'Missing output_id' }, { status: 400 })
 
     const authHeader = request.headers.get('authorization')
@@ -116,6 +116,8 @@ export async function POST(request: NextRequest) {
     // Entitlements
     const entitlements = await getUserPlanEntitlements(supabase, user.id)
 
+    // Enforce model for story continuation
+    const model_code = 'grok-4'
     // Pricing
     let { data: modelPrice } = await supabase
       .from('model_price')
@@ -151,7 +153,7 @@ export async function POST(request: NextRequest) {
     messages.push({ role: 'user', content: `Previous content:\n${output.content}\n\nContinue the story seamlessly in the same style and POV. Do not repeat previous lines.` })
 
     const grok = createGrokClient()
-    const stream = grok.chatStream({ model: (model_code as any) || 'grok-4', messages, max_tokens: max_tokens || modelPrice.max_output_tokens, temperature: 0.7 })
+    const stream = grok.chatStream({ model: model_code as any, messages, max_tokens: max_tokens || modelPrice.max_output_tokens, temperature: 0.7 })
 
     // Streaming response: append and save at end
     const encoder = new TextEncoder()

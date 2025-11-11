@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   let userId: string | null = null
   try {
     const body = await request.json()
-    const { blueprint_id, model_code = 'grok-4', max_tokens } = body
+    const { blueprint_id, max_tokens } = body
     if (!blueprint_id) return NextResponse.json({ success: false, message: 'Missing blueprint_id' }, { status: 400 })
 
     const authHeader = request.headers.get('authorization')
@@ -60,6 +60,8 @@ export async function POST(request: NextRequest) {
     const blueprint = await getBlueprint(blueprint_id, user.id)
     const entitlements = await getUserPlanEntitlements(supabase, user.id)
 
+    // Enforce model for stories
+    const model_code = 'grok-4'
     // Pricing
     let { data: modelPrice } = await supabase.from('model_price').select('*').eq('code', model_code).maybeSingle()
     if (!modelPrice) {
@@ -78,7 +80,7 @@ export async function POST(request: NextRequest) {
     // stream
     const messages = createStoryPrompt({ language: blueprint.language, readMinutes: blueprint.read_minutes, situation: blueprint.situation, characters: blueprint.characters || [], relationships: blueprint.relationships || [], tone: blueprint.tone, maxTokens: max_tokens || modelPrice.max_output_tokens })
     const grok = createGrokClient()
-    const stream = grok.chatStream({ model: (model_code as any) || 'grok-4', messages, max_tokens: max_tokens || modelPrice.max_output_tokens, temperature: 0.7 })
+    const stream = grok.chatStream({ model: model_code as any, messages, max_tokens: max_tokens || modelPrice.max_output_tokens, temperature: 0.7 })
 
     const encoder = new TextEncoder()
     const sse = new ReadableStream({

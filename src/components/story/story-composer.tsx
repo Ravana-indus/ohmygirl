@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 
-interface Character { id: string; name: string; gender?: 'female' | 'male' | 'non-binary' | 'custom'; traits: Record<string, any> }
+interface Character { id: string; name: string; role?: string; gender?: 'female' | 'male' | 'non-binary' | 'custom'; traits: Record<string, any> }
 interface Relationship { id: string; a: string; b: string; relation_type: string; tension_level: number }
 
 export function StoryComposer({ onSaveBlueprint, onGenerateStory, initialBlueprints = [] }: { onSaveBlueprint: (b: any) => void; onGenerateStory: (b: any) => void; initialBlueprints?: any[] }) {
@@ -21,7 +21,8 @@ export function StoryComposer({ onSaveBlueprint, onGenerateStory, initialBluepri
 
   useEffect(() => { if (Array.isArray(initialBlueprints)) setSavedBlueprints(initialBlueprints) }, [initialBlueprints])
 
-  const addCharacter = () => setCharacters([...characters, { id: Date.now().toString(), name: '', gender: 'female', traits: {} }])
+  const roleOptions = ['girlfriend','lover','wife','teacher','nurse','colleague','neighbor','boss'] as const
+  const addCharacter = () => setCharacters([...characters, { id: Date.now().toString(), name: '', role: 'girlfriend', gender: 'female', traits: {} }])
   const removeCharacter = (id: string) => { setCharacters(characters.filter(c => c.id !== id)); setRelationships(relationships.filter(r => r.a !== id && r.b !== id)) }
   const updateCharacter = (id: string, field: string, value: any) => setCharacters(characters.map(c => c.id === id ? { ...c, [field]: value } : c))
   const addRelationship = () => { if (characters.length < 2) return; const a = characters[0].id, b = characters[1].id; setRelationships([...relationships, { id: Date.now().toString(), a, b, relation_type: 'romantic', tension_level: 5 }]) }
@@ -93,12 +94,55 @@ export function StoryComposer({ onSaveBlueprint, onGenerateStory, initialBluepri
             <div key={c.id} className="border rounded-md p-3 space-y-2">
               <div className="flex items-center justify-between"><h3 className="font-medium">Character {idx+1}</h3><Button variant="ghost" onClick={() => removeCharacter(c.id)}>Remove</Button></div>
               <input value={c.name} onChange={(e) => updateCharacter(c.id, 'name', e.target.value)} placeholder="Name" className="w-full border rounded-md p-2" />
-              <select value={c.gender || 'female'} onChange={(e) => updateCharacter(c.id, 'gender', e.target.value)} className="w-full border rounded-md p-2">
-                <option value="female">Female</option>
-                <option value="male">Male</option>
-                <option value="non-binary">Non-binary</option>
-                <option value="custom">Custom / In traits</option>
-              </select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-sm mb-1">Role</label>
+                  {(() => {
+                    const current = (c.role || '').toLowerCase()
+                    const isPreset = roleOptions.includes(current as any)
+                    const selected = isPreset ? current : 'custom'
+                    return (
+                      <>
+                        <select
+                          value={selected}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            if (val === 'custom') {
+                              // keep existing custom value or blank; input below will update
+                              updateCharacter(c.id, 'role', c.role || '')
+                            } else {
+                              updateCharacter(c.id, 'role', val)
+                            }
+                          }}
+                          className="w-full border rounded-md p-2"
+                        >
+                          {roleOptions.map((r) => (
+                            <option key={r} value={r}>{r}</option>
+                          ))}
+                          <option value="custom">Custom…</option>
+                        </select>
+                        {selected === 'custom' && (
+                          <input
+                            className="mt-2 w-full border rounded-md p-2"
+                            placeholder="Enter custom role (e.g., nurse, model)"
+                            value={c.role || ''}
+                            onChange={(e) => updateCharacter(c.id, 'role', e.target.value)}
+                          />
+                        )}
+                      </>
+                    )
+                  })()}
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">Gender</label>
+                  <select value={c.gender || 'female'} onChange={(e) => updateCharacter(c.id, 'gender', e.target.value)} className="w-full border rounded-md p-2">
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                    <option value="non-binary">Non-binary</option>
+                    <option value="custom">Custom / In traits</option>
+                  </select>
+                </div>
+              </div>
               <textarea value={c.traits?.description || ''} onChange={(e) => updateCharacter(c.id, 'traits', { description: e.target.value })} placeholder="Traits" className="w-full border rounded-md p-2" rows={2} />
             </div>
           ))}
