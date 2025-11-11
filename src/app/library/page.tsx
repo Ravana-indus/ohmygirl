@@ -46,10 +46,12 @@ export default function LibraryPage() {
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
-        <button className={`px-2 py-1 text-xs rounded-full border ${!category ? 'bg-gray-100' : ''}`} onClick={() => setCategory('')}>All</button>
-        {categories.map((c) => (
-          <button key={c} className={`px-2 py-1 text-xs rounded-full border ${category === c ? 'bg-gray-100' : ''}`} onClick={() => setCategory(c)}>{c}</button>
-        ))}
+        <div className="w-full overflow-x-auto whitespace-nowrap -mx-4 px-4">
+          <button className={`inline-block mr-2 mb-2 px-2 py-1 text-xs rounded-full border ${!category ? 'bg-gray-100' : ''}`} onClick={() => setCategory('')}>All</button>
+          {categories.map((c) => (
+            <button key={c} className={`inline-block mr-2 mb-2 px-2 py-1 text-xs rounded-full border ${category === c ? 'bg-gray-100' : ''}`} onClick={() => setCategory(c)}>{c}</button>
+          ))}
+        </div>
         <div className="ml-auto flex items-center gap-2 text-sm">
           <span>Sort:</span>
           <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="border rounded-md px-2 py-1">
@@ -134,4 +136,3 @@ function RateStars({ outputId, initialAvg, initialCount, onUpdated }: { outputId
     </div>
   )
 }
-

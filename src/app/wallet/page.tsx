@@ -60,15 +60,15 @@ export default function WalletPage() {
             ) : (
               <div className="divide-y">
                 {txns.map((t) => (
-                  <div key={t.id} className="py-2 flex items-center justify-between text-sm">
-                    <div className="flex-1">
-                      <div className="font-medium">
+                  <div key={t.id} className="py-2 text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">
                         {formatKind(t.kind)} {t.request_id ? <span className="text-gray-400">· {t.request_id.slice(0,8)}</span> : null}
                       </div>
-                      {t.note && <div className="text-gray-500">{t.note}</div>}
+                      {t.note && <div className="text-gray-500 truncate">{t.note}</div>}
                       <div className="text-xs text-gray-500">{new Date(t.created_at).toLocaleString()}</div>
                     </div>
-                    <div className="text-right w-40">
+                    <div className="text-right sm:w-40">
                       <div className={t.amount_microcredits >= 0 ? 'text-green-600' : 'text-red-600'}>
                         {t.amount_microcredits >= 0 ? '+' : ''}{(t.amount_microcredits / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 2 })} LKR
                       </div>
@@ -94,4 +94,3 @@ function formatKind(kind: string) {
     default: return kind
   }
 }
-

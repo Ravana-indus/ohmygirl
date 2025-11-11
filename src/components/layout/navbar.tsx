@@ -18,6 +18,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const { theme, toggleTheme } = useTheme()
   const [signedIn, setSignedIn] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -60,8 +61,40 @@ export default function Navbar() {
             </>
           )}
         </nav>
-        <div className="md:hidden" />
+        <div className="md:hidden">
+          <button onClick={() => setMobileOpen(v => !v)} className="px-3 py-1.5 rounded-md border hover:border-gray-300">Menu</button>
+        </div>
       </div>
+      {/* Mobile menu */}
+      {mobileOpen && (
+        <div className="md:hidden border-t bg-white">
+          <div className="px-4 py-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <button onClick={toggleTheme} className="px-3 py-1.5 rounded-md border text-sm">
+                {theme === 'dark' ? 'Light' : 'Dark'}
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {items.map(it => (
+                <Link key={it.href} href={it.href} onClick={() => setMobileOpen(false)} className={`px-3 py-2 rounded-md border ${pathname === it.href ? 'border-black' : 'hover:border-gray-300'}`}>{it.name}</Link>
+              ))}
+            </div>
+            <div className="pt-2 border-t">
+              {signedIn ? (
+                <button
+                  onClick={async () => { await supabase.auth.signOut(); setMobileOpen(false); window.location.href = '/' }}
+                  className="w-full px-3 py-2 rounded-md border text-sm"
+                >Sign out</button>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <Link href="/auth/signin" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-md border text-center text-sm">Sign in</Link>
+                  <Link href="/auth/signup" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-md border text-center text-sm">Sign up</Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   )
 }

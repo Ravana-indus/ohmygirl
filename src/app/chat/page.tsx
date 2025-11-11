@@ -16,6 +16,7 @@ export default function ChatPage() {
   const [loadingSessions, setLoadingSessions] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({ title: '', language: 'tamil' as 'tamil' | 'thanglish', userName: '', aiName: '' })
+  const [showSessions, setShowSessions] = useState(false)
   const selected = sessions.find(s => s.id === selectedSessionId) || null
   const ai = selected?.characters.find(c => c.role === 'ai') as any
   const user = selected?.characters.find(c => c.role === 'user') as any
@@ -58,7 +59,8 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-[calc(100vh-6rem)] overflow-hidden">
-      <aside className="w-72 border-r p-4 space-y-4 overflow-y-auto">
+      {/* sidebar (desktop) */}
+      <aside className="hidden md:block w-72 border-r p-4 space-y-4 overflow-y-auto">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Sessions</h2>
         </div>
@@ -89,13 +91,53 @@ export default function ChatPage() {
       </aside>
 
       <main className="flex-1 overflow-hidden">
+        {/* Mobile toggles */}
+        <div className="md:hidden border-b p-2 flex items-center justify-between">
+          <button className="px-3 py-2 rounded-md border text-sm" onClick={() => setShowSessions(true)}>Sessions</button>
+          <div className="text-xs text-gray-500">WhatsApp-style RP chat</div>
+        </div>
         {selected && ai && user ? (
           <RPChat sessionId={selected.id} aiCharacter={ai} userCharacter={user} sessionLanguage={selected.language} onHistoryChanged={load} />
         ) : (
           <div className="h-full flex items-center justify-center text-gray-500">Select or create a session to start chatting.</div>
         )}
       </main>
+
+      {/* Mobile sessions drawer */}
+      {showSessions && (
+        <div className="md:hidden fixed inset-0 z-50 bg-black/40" onClick={() => setShowSessions(false)}>
+          <div className="absolute left-0 top-0 bottom-0 w-80 max-w-full bg-white p-4 space-y-4 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Sessions</h2>
+              <button className="text-sm underline" onClick={() => setShowSessions(false)}>Close</button>
+            </div>
+            {error && <p className="text-sm text-red-500">{error}</p>}
+            {loadingSessions ? <p className="text-sm text-gray-500">Loading…</p> : (
+              <div className="space-y-2">
+                {sessions.map((s) => (
+                  <button key={s.id} onClick={() => { setSelectedSessionId(s.id); setShowSessions(false) }} className={`w-full text-left p-2 rounded border ${selectedSessionId === s.id ? 'border-black' : ''}`}>
+                    <div className="font-medium">{s.title}</div>
+                    <div className="text-xs text-gray-500">{s.language} · {new Date(s.created_at).toLocaleDateString()}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <form onSubmit={createSession} className="space-y-2 border-t pt-3 mt-3">
+              <h3 className="text-sm font-semibold">New Session</h3>
+              <input className={inputClass} placeholder="Title" value={form.title} onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, title: e.target.value })} />
+              <div className="grid grid-cols-2 gap-2">
+                {(['tamil','thanglish'] as const).map(l => (
+                  <button type="button" key={l} className={`border rounded p-2 text-sm ${form.language===l ? 'border-black' : ''}`} onClick={() => setForm({ ...form, language: l })}>{l}</button>
+                ))}
+              </div>
+              <input className={inputClass} placeholder="Your name" value={form.userName} onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, userName: e.target.value })} />
+              <input className={inputClass} placeholder="AI name" value={form.aiName} onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, aiName: e.target.value })} />
+              <Button>Create</Button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-

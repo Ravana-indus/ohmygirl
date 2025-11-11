@@ -85,7 +85,7 @@ export default function StoriesPage() {
   }
 
   return (
-    <div className="flex flex-col space-y-6 p-6">
+    <div className="flex flex-col space-y-6 p-4 md:p-6">
       <StoryComposer initialBlueprints={serverBlueprints} onSaveBlueprint={handleSaveBlueprint} onGenerateStory={handleGenerateStory} />
       <div className="border rounded-lg p-4 min-h-[200px] whitespace-pre-wrap">
         {error ? (<span className="text-sm text-red-500">{error}</span>) : loading ? ('Generating story…') : (generated || 'Generated story will appear here.')}
@@ -97,10 +97,10 @@ export default function StoriesPage() {
             {myStories.map((s) => (
               <article key={s.id} className="border rounded-md p-3">
                 <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                  <span>{new Date(s.created_at).toLocaleString()}</span>
+                  <span className="truncate max-w-[50%]">{new Date(s.created_at).toLocaleString()}</span>
                   <span>{s.language === 'tamil' ? 'Tamil' : 'Thanglish'} · {s.read_minutes || '?'} min</span>
                 </div>
-                <div className="line-clamp-6 whitespace-pre-wrap">{s.content}</div>
+                <div className="line-clamp-6 whitespace-pre-wrap text-sm md:text-base">{s.content}</div>
                 <div className="mt-2 flex items-center gap-2">
                   <a className="px-2 py-1 rounded-md text-xs border hover:bg-gray-50" href={`/stories/${s.id}`}>Read</a>
                   <a className="px-2 py-1 rounded-md text-xs border hover:bg-gray-50" href={`/stories/${s.id}?continue=1`}>Continue</a>
