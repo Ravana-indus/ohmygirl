@@ -60,9 +60,20 @@ export default function StoriesPage() {
 
   const handleSaveBlueprint = async (blueprint: any) => { setError(null); try { await persistBlueprint(blueprint); await loadServerBlueprints() } catch (e: any) { setError(e?.message || 'Failed to save blueprint.') } }
 
-  const readSSE = async (stream: ReadableStream<Uint8Array>) => {
+  const readSSE = async (stream: ReadableStream<Uint8Array>, onChunk?: (c: string) => void) => {
     const reader = stream.getReader(); const decoder = new TextDecoder('utf-8'); let buffer=''; let content='';
-    const process = (block: string) => { const lines = block.split('\n').filter(l=>l.startsWith('data:')).map(l=>l.replace(/^data:\s*/, '')); if (!lines.length) return; try { const json = JSON.parse(lines.join('\n').trim()); if (json.type==='content' && json.content) content+=json.content; if (json.type==='error') throw new Error(json.message||'Story generation failed') } catch {} }
+    const process = (block: string) => {
+      const lines = block.split('\n').filter(l=>l.startsWith('data:')).map(l=>l.replace(/^data:\s*/, ''))
+      if (!lines.length) return
+      try {
+        const json = JSON.parse(lines.join('\n').trim())
+        if (json.type==='content' && json.content) {
+          content+=json.content
+          onChunk?.(json.content)
+        }
+        if (json.type==='error') throw new Error(json.message||'Story generation failed')
+      } catch {}
+    }
     while(true){ const {done,value}=await reader.read(); if(done) break; buffer+=decoder.decode(value,{stream:true}); let idx=buffer.indexOf('\n\n'); while(idx!==-1){ process(buffer.slice(0,idx)); buffer=buffer.slice(idx+2); idx=buffer.indexOf('\n\n') } }
     if (buffer.trim()) process(buffer)
     return content.trim()
@@ -78,8 +89,9 @@ export default function StoriesPage() {
       const blueprintServerId = await persistBlueprint(blueprint)
       const res = await fetch('/api/stories/generate', { method: 'POST', headers, body: JSON.stringify({ blueprint_id: blueprintServerId, model_code: 'grok-4' }) })
       if (!res.ok || !res.body) throw new Error('Failed to start story generation')
-      const content = await readSSE(res.body)
-      setGenerated(content || '... (no content)')
+      let live = ''
+      const content = await readSSE(res.body, (piece) => { live += piece; setGenerated((prev) => (prev ? prev + piece : piece)) })
+      if (!content) setGenerated(live || '... (no content)')
       await refreshMyStories()
     } catch (e: any) { setError(e?.message || 'Story generation failed.') } finally { setLoading(false) }
   }

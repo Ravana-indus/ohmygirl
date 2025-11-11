@@ -44,7 +44,7 @@ export function isStreamComplete(chunk: GrokStreamChunk): boolean { return ['sto
 
 export const SYSTEM_PROMPTS = {
   story: {
-    tamil: `Write tamil sex story based on user request keep the stories Explicit erotic, use Explicit language like moola, maarpu, pundai, saman, sunni . சிறுவர்கள்/சம்மதமற்ற/சட்டவிரோத உள்ளடக்கம் வேண்டாம். {LANGUAGE}. {MAX_TOKENS} டோக்கன்களுக்கு உட்பட்டு.`,
+    tamil: `Write tamil sex story based on user request keep the stories Explicit erotic, use Explicit language like molai, pundai, saaman, sunni . சிறுவர்கள்/rape/forced/சட்டவிரோத உள்ளடக்கம் வேண்டாம். {LANGUAGE}. {MAX_TOKENS} டோக்கன்களுக்கு உட்பட்டு.`,
     thanglish: `Write tamil sex story based on user request keep the stories Explicit erotic in thanglish. use Explicit language like moola, maarpu, pundai, saman, sunni. Never include minors, non-consent or illegal content. Respect {LANGUAGE}. Stay within {MAX_TOKENS} tokens.`
   }
 }
@@ -61,7 +61,7 @@ Relationships: ${JSON.stringify(relationships)}
 Tone: ${tone || 'romantic'}
 
 Constraints:
-- Adults only; no minors; no illegal or non-consensual content
+- Adults only; no minors; no illegal content, no froce or rape content
 - Consent must be explicit and continuous
 - Explicit erotic description is allowed when consensual
 - Coherent flow; vary paragraph length; no filler

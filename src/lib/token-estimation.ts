@@ -3,7 +3,8 @@ import { MICROCREDITS_PER_LKR } from './constants'
 export interface TokenEstimationOptions { language: 'tamil' | 'thanglish'; readMinutes?: number; text?: string; feature: 'story' | 'rp' }
 export interface TokenEstimationResult { estimatedTokens: number; estimatedInputTokens: number; estimatedOutputTokens: number; readMinutes: number; language: string; feature: string }
 
-const TOKENS_PER_MINUTE = { tamil: 120, thanglish: 135 }
+// Tuned up to produce longer stories per displayed read time
+const TOKENS_PER_MINUTE = { tamil: 220, thanglish: 260 }
 const TOKEN_DISTRIBUTION = { story: { input_ratio: 0.3, output_ratio: 0.7 }, rp: { input_ratio: 0.4, output_ratio: 0.6 } }
 
 const TAMIL_CHAR_TOKEN_RATIO = 0.8
