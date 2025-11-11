@@ -1,0 +1,23 @@
+# Node/Next.js
+node_modules/
+.next/
+.out/
+.turbo/
+.vercel/
+*.log
+.DS_Store
+
+# Build/coverage
+dist/
+build/
+coverage/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/
+.idea/
+
