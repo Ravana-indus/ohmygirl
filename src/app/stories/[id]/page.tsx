@@ -11,6 +11,7 @@ export default function StoryDetailPage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [continuing, setContinuing] = useState(false)
+  const [rewriting, setRewriting] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -41,7 +42,7 @@ export default function StoryDetailPage({ params }: { params: { id: string } }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search])
 
-  const readSSE = async (stream: ReadableStream<Uint8Array>) => {
+  const readSSE = async (stream: ReadableStream<Uint8Array>, replace = false) => {
     const reader = stream.getReader()
     const decoder = new TextDecoder('utf-8')
     let buffer = ''
@@ -52,7 +53,13 @@ export default function StoryDetailPage({ params }: { params: { id: string } }) 
       try {
         const json = JSON.parse(payload)
         if (json.type === 'content' && json.content) {
-          setStory((prev: any) => prev ? { ...prev, content: (prev.content || '') + json.content } : prev)
+          setStory((prev: any) => {
+            if (!prev) return prev
+            if (replace) {
+              return { ...prev, content: (prev._buffer || '') + json.content, _buffer: ((prev._buffer || '') + json.content) }
+            }
+            return { ...prev, content: (prev.content || '') + json.content }
+          })
         }
       } catch {}
     }
@@ -84,6 +91,25 @@ export default function StoryDetailPage({ params }: { params: { id: string } }) 
     } finally { setContinuing(false) }
   }
 
+  const handleRewrite = async () => {
+    try {
+      setRewriting(true)
+      setError(null)
+      const { data: session } = await supabase.auth.getSession()
+      const token = session.session?.access_token
+      if (!token) throw new Error('Please sign in to rewrite the story.')
+      // clear buffer for live replace rendering
+      setStory((prev: any) => prev ? { ...prev, _buffer: '' } : prev)
+      const res = await fetch('/api/stories/rewrite', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ output_id: id }) })
+      if (!res.ok || !res.body) throw new Error('Failed to rewrite story')
+      await readSSE(res.body, true)
+      // after rewrite completes, reload to get final saved content
+      await load()
+    } catch (e: any) {
+      setError(e?.message || 'Failed to rewrite')
+    } finally { setRewriting(false) }
+  }
+
   return (
     <div className="max-w-3xl mx-auto space-y-4 p-6">
       {error && <p className="text-sm text-red-500">{error}</p>}
@@ -109,8 +135,9 @@ export default function StoryDetailPage({ params }: { params: { id: string } }) 
             </div>
           </div>
           <div className="prose prose-sm max-w-none whitespace-pre-wrap">{story.content}</div>
-          <div className="mt-4">
+          <div className="mt-4 flex items-center gap-2 flex-wrap">
             <button className="px-3 py-2 text-sm rounded-md border hover:bg-gray-50" onClick={handleContinue} disabled={continuing}>{continuing ? 'Continuing…' : 'Continue story'}</button>
+            <button className="px-3 py-2 text-sm rounded-md border hover:bg-gray-50" onClick={handleRewrite} disabled={rewriting}>{rewriting ? 'Rewriting…' : 'Rewrite story'}</button>
           </div>
         </>
       ) : null}

@@ -12,6 +12,7 @@ export default function StoriesPage() {
   const [myStories, setMyStories] = useState<any[]>([])
   const [loadingMyStories, setLoadingMyStories] = useState(false)
   const [serverBlueprints, setServerBlueprints] = useState<any[]>([])
+  const [rewritingId, setRewritingId] = useState<string | null>(null)
 
   const refreshMyStories = async () => {
     try {
@@ -96,6 +97,24 @@ export default function StoriesPage() {
     } catch (e: any) { setError(e?.message || 'Story generation failed.') } finally { setLoading(false) }
   }
 
+  const handleRewriteStory = async (outputId: string) => {
+    setError(null)
+    setRewritingId(outputId)
+    setGenerated('')
+    try {
+      const { data: session } = await supabase.auth.getSession()
+      const token = session.session?.access_token
+      if (!token) throw new Error('Please sign in to rewrite a story.')
+      const res = await fetch('/api/stories/rewrite', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ output_id: outputId }) })
+      if (!res.ok || !res.body) throw new Error('Failed to start rewrite')
+      await readSSE(res.body, (chunk) => {
+        setGenerated(prev => (prev ? prev + chunk : chunk))
+      })
+      await refreshMyStories()
+    } catch (e: any) { setError(e?.message || 'Rewrite failed.') }
+    finally { setRewritingId(null) }
+  }
+
   return (
     <div className="flex flex-col space-y-6 p-4 md:p-6">
       <StoryComposer initialBlueprints={serverBlueprints} onSaveBlueprint={handleSaveBlueprint} onGenerateStory={handleGenerateStory} />
@@ -113,9 +132,10 @@ export default function StoriesPage() {
                   <span>{s.language === 'tamil' ? 'Tamil' : 'Thanglish'} · {s.read_minutes || '?'} min</span>
                 </div>
                 <div className="line-clamp-6 whitespace-pre-wrap text-sm md:text-base">{s.content}</div>
-                <div className="mt-2 flex items-center gap-2">
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
                   <a className="px-2 py-1 rounded-md text-xs border hover:bg-gray-50" href={`/stories/${s.id}`}>Read</a>
                   <a className="px-2 py-1 rounded-md text-xs border hover:bg-gray-50" href={`/stories/${s.id}?continue=1`}>Continue</a>
+                  <button className="px-2 py-1 rounded-md text-xs border hover:bg-gray-50" onClick={() => handleRewriteStory(s.id)} disabled={rewritingId === s.id}>{rewritingId === s.id ? 'Rewriting…' : 'Rewrite'}</button>
                   <PublishButtons outputId={s.id} initial={!!s.is_published} onChanged={refreshMyStories} />
                 </div>
               </article>
