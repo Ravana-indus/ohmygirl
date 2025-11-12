@@ -320,8 +320,8 @@ export function RPChat({
 
   return (
     <div className={`flex flex-col h-full bg-[#0b141a] text-[#e9edef] ${theme} animate-fade-in`}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#1f2a30] bg-[#202c33] shadow-sm">
+      {/* Header (sticky like WhatsApp) */}
+      <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 border-b border-[#1f2a30] bg-[#202c33] shadow-sm">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 rounded-full bg-[#25d366]/10 border border-[#25d366]/40 flex items-center justify-center shadow">
@@ -376,7 +376,7 @@ export function RPChat({
 
       {/* Messages */}
       <div
-        className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide"
+        className="flex-1 overflow-y-auto p-4 pb-28 space-y-4 scrollbar-hide"
         style={chatBackgroundStyle}
       >
         {loadingHistory ? (
@@ -449,8 +449,8 @@ export function RPChat({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="border-t border-[#1f2a30] bg-[#202c33] p-4">
+      {/* Input (sticky footer on mobile) */}
+      <div className="sticky bottom-0 z-20 border-t border-[#1f2a30] bg-[#202c33] p-4">
         {sendingError && (
           <p className="text-sm text-destructive mb-2">{sendingError}</p>
         )}
