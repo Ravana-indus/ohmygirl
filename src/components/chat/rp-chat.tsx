@@ -376,7 +376,7 @@ export function RPChat({
 
       {/* Messages */}
       <div
-        className="flex-1 overflow-y-auto p-4 pb-28 space-y-4 scrollbar-hide"
+        className="flex-1 overflow-y-auto p-4 pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-28 space-y-4 scrollbar-hide"
         style={chatBackgroundStyle}
       >
         {loadingHistory ? (
@@ -449,8 +449,8 @@ export function RPChat({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input (sticky footer on mobile) */}
-      <div className="sticky bottom-0 z-20 border-t border-[#1f2a30] bg-[#202c33] p-4">
+      {/* Input bar: fixed on mobile (like WhatsApp), sticky on md+ */}
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1f2a30] bg-[#202c33] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pb-4 md:sticky md:bottom-0">
         {sendingError && (
           <p className="text-sm text-destructive mb-2">{sendingError}</p>
         )}
