@@ -3,5 +3,5 @@
 @tailwind utilities;
 
 html, body, #__next { height: 100%; }
-body { color: #111; }
-
+body { background-color: #ffffff; color: #111111; }
+.dark body { background-color: #0b0f13; color: #e5e7eb; }
