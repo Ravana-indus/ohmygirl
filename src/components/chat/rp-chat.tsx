@@ -320,8 +320,8 @@ export function RPChat({
 
   return (
     <div className={`flex flex-col h-full bg-[#0b141a] text-[#e9edef] ${theme} animate-fade-in`}>
-      {/* Header (sticky like WhatsApp) */}
-      <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 border-b border-[#1f2a30] bg-[#202c33] shadow-sm">
+      {/* Header: fixed on mobile, sticky on md+ */}
+      <div className="fixed inset-x-0 top-0 z-30 flex items-center justify-between px-4 py-3 border-b border-[#1f2a30] bg-[#202c33] shadow-sm md:sticky md:inset-auto md:top-0 md:z-10">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 rounded-full bg-[#25d366]/10 border border-[#25d366]/40 flex items-center justify-center shadow">
@@ -376,7 +376,7 @@ export function RPChat({
 
       {/* Messages */}
       <div
-        className="flex-1 overflow-y-auto p-4 pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-28 space-y-4 scrollbar-hide"
+        className="flex-1 overflow-y-auto p-4 pt-[calc(3.5rem+env(safe-area-inset-top))] pb-[calc(7rem+env(safe-area-inset-bottom))] md:pt-4 md:pb-28 space-y-4 scrollbar-hide"
         style={chatBackgroundStyle}
       >
         {loadingHistory ? (
