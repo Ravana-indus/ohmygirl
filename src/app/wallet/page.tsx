@@ -11,6 +11,7 @@ export default function WalletPage() {
   const [txns, setTxns] = useState<WalletTxn[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [topupUSD, setTopupUSD] = useState<number>(10)
 
   const load = async () => {
     setLoading(true)
@@ -48,6 +49,26 @@ export default function WalletPage() {
             <h2 className="text-lg font-semibold mb-2">Balance</h2>
             <div className="text-3xl font-bold">LKR {balanceLKR.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
             <p className="text-xs text-gray-500">{wallet?.balance_microcredits?.toLocaleString()} microcredits</p>
+          </section>
+
+          <section className="border rounded-lg p-4">
+            <h2 className="text-lg font-semibold mb-2">Top up</h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              <label className="text-sm">Amount (USD)</label>
+              <input type="number" min={1} step="1" value={topupUSD} onChange={(e) => setTopupUSD(parseInt(e.target.value || '0'))} className="w-28 border rounded-md p-2 text-sm" />
+              <button className="px-3 py-2 rounded-md border text-sm" onClick={async () => {
+                try {
+                  const { data: session } = await supabase.auth.getSession()
+                  const token = session.session?.access_token
+                  if (!token) throw new Error('Please sign in to top up.')
+                  const res = await fetch('/api/payments/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ amount_usd: Math.max(1, topupUSD||0) }) })
+                  const json = await res.json()
+                  if (!res.ok || !json.success || !json.url) throw new Error(json.message || 'Failed to start checkout')
+                  window.location.href = json.url
+                } catch (e: any) { alert(e?.message || 'Failed to start checkout') }
+              }}>Pay with Stripe</button>
+              <p className="text-xs text-gray-500">Credits added after payment. Rate: $1 ≈ LKR 320.</p>
+            </div>
           </section>
 
           <section className="border rounded-lg p-4">
