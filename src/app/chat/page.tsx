@@ -59,8 +59,8 @@ export default function ChatPage() {
 
   return (
     <div className="flex md:h-[calc(100vh-6rem)] h-auto overflow-hidden pb-24 md:pb-0">
-      {/* sidebar (desktop) */}
-      <aside className="hidden md:block w-72 border-r p-4 space-y-4 overflow-y-auto">
+      {/* sidebar (desktop) - sticky */}
+      <aside className="hidden md:block w-72 border-r p-4 space-y-4 overflow-y-auto sticky top-14 h-[calc(100vh-3.5rem)] bg-white dark:bg-neutral-900">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Sessions</h2>
         </div>
@@ -114,11 +114,12 @@ export default function ChatPage() {
       {/* Mobile sessions drawer */}
       {showSessions && (
         <div className="md:hidden fixed inset-0 z-50 bg-black/40" onClick={() => setShowSessions(false)}>
-          <div className="absolute left-0 top-0 bottom-0 w-80 max-w-full bg-white p-4 space-y-4 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
+          <div className="absolute left-0 top-0 bottom-0 w-80 max-w-full bg-white dark:bg-neutral-900 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 z-10 bg-white dark:bg-neutral-900 border-b p-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Sessions</h2>
               <button className="text-sm underline" onClick={() => setShowSessions(false)}>Close</button>
             </div>
+            <div className="p-4 space-y-4">
             {error && <p className="text-sm text-red-500">{error}</p>}
             {loadingSessions ? <p className="text-sm text-gray-500">Loading…</p> : (
               <div className="space-y-2">
@@ -143,6 +144,7 @@ export default function ChatPage() {
               <input className={inputClass} placeholder="AI name" value={form.aiName} onChange={(e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, aiName: e.target.value })} />
               <Button>Create</Button>
             </form>
+            </div>
           </div>
         </div>
       )}
