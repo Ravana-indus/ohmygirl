@@ -20,6 +20,10 @@ export async function POST(request: NextRequest) {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session
+      // Only credit on successful payment
+      if (session.payment_status !== 'paid') {
+        return NextResponse.json({ ok: true })
+      }
       const userId = session.metadata?.user_id
       const creditsStr = session.metadata?.credits_micro
       const requestId = session.id
@@ -66,4 +70,3 @@ export async function POST(request: NextRequest) {
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 })
   }
 }
-
