@@ -52,9 +52,9 @@ export default function LibraryPage() {
 
       <div className="flex items-center gap-2 flex-wrap">
         <div className="w-full overflow-x-auto whitespace-nowrap -mx-4 px-4">
-          <button className={`inline-block mr-2 mb-2 px-2 py-1 text-xs rounded-full border ${!category ? 'bg-gray-100' : ''}`} onClick={() => setCategory('')}>All</button>
+          <button className={`inline-block mr-2 mb-2 px-2 py-1 text-xs rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:text-gray-200 dark:hover:bg-neutral-800 ${!category ? 'bg-gray-100 dark:bg-neutral-800' : ''}`} onClick={() => setCategory('')}>All</button>
           {categories.map((c) => (
-            <button key={c} className={`inline-block mr-2 mb-2 px-2 py-1 text-xs rounded-full border ${category === c ? 'bg-gray-100' : ''}`} onClick={() => setCategory(c)}>{c}</button>
+            <button key={c} className={`inline-block mr-2 mb-2 px-2 py-1 text-xs rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:text-gray-200 dark:hover:bg-neutral-800 ${category === c ? 'bg-gray-100 dark:bg-neutral-800' : ''}`} onClick={() => setCategory(c)}>{c}</button>
           ))}
         </div>
         <div className="ml-auto flex items-center gap-2 text-sm">

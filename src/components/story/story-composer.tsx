@@ -30,6 +30,7 @@ export function StoryComposer({ onSaveBlueprint, onGenerateStory, initialBluepri
   const updateRelationship = (id: string, field: string, value: any) => setRelationships(relationships.map(r => r.id === id ? { ...r, [field]: value } : r))
 
   const effectiveTone = ((): string => selectedTone === 'custom' ? (customTone.trim() || 'custom') : selectedTone)()
+  const canGenerate = situation.trim().length > 0
 
   const handleSaveBlueprint = () => {
     const blueprint = { id: Date.now().toString(), situation, phase, read_minutes: readMinutes, language, tone: effectiveTone, characters, relationships, created_at: new Date().toISOString() }
@@ -46,7 +47,7 @@ export function StoryComposer({ onSaveBlueprint, onGenerateStory, initialBluepri
         </div>
         <div className="flex gap-2">
           <Button onClick={handleSaveBlueprint} variant="outline">Save Blueprint</Button>
-          <Button onClick={() => onGenerateStory({ id: Date.now().toString(), situation, phase, read_minutes: readMinutes, language, tone: effectiveTone, characters, relationships, created_at: new Date().toISOString() })}>Generate Story</Button>
+          <Button disabled={!canGenerate} onClick={() => onGenerateStory({ id: Date.now().toString(), situation, phase, read_minutes: readMinutes, language, tone: effectiveTone, characters, relationships, created_at: new Date().toISOString() })}>Generate Story</Button>
         </div>
       </div>
 
@@ -172,6 +173,14 @@ export function StoryComposer({ onSaveBlueprint, onGenerateStory, initialBluepri
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Bottom generate CTA for better UX */}
+      <div className="flex items-center justify-end gap-2">
+        <Button variant="outline" onClick={handleSaveBlueprint}>Save Blueprint</Button>
+        <Button disabled={!canGenerate} onClick={() => onGenerateStory({ id: Date.now().toString(), situation, phase, read_minutes: readMinutes, language, tone: effectiveTone, characters, relationships, created_at: new Date().toISOString() })}>
+          Generate Story
+        </Button>
       </div>
 
       <div className="border rounded-lg p-4">
