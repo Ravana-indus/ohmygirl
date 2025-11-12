@@ -58,7 +58,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-6rem)] overflow-hidden">
+    <div className="flex md:h-[calc(100vh-6rem)] h-auto overflow-hidden pb-24 md:pb-0">
       {/* sidebar (desktop) */}
       <aside className="hidden md:block w-72 border-r p-4 space-y-4 overflow-y-auto">
         <div className="flex items-center justify-between">
@@ -90,7 +90,7 @@ export default function ChatPage() {
         </form>
       </aside>
 
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-hidden relative">
         {/* Mobile toggles */}
         <div className="md:hidden border-b p-2 flex items-center justify-between">
           <button className="px-3 py-2 rounded-md border text-sm" onClick={() => setShowSessions(true)}>Sessions</button>
@@ -101,6 +101,14 @@ export default function ChatPage() {
         ) : (
           <div className="h-full flex items-center justify-center text-gray-500">Select or create a session to start chatting.</div>
         )}
+        {/* Mobile floating Sessions FAB to ensure discoverability */}
+        <button
+          type="button"
+          onClick={() => setShowSessions(true)}
+          className="md:hidden fixed bottom-24 right-4 z-40 px-4 py-2 rounded-full border bg-white/90 backdrop-blur text-sm shadow hover:bg-white dark:bg-neutral-800/90 dark:text-gray-100 dark:border-neutral-700"
+        >
+          Sessions
+        </button>
       </main>
 
       {/* Mobile sessions drawer */}
