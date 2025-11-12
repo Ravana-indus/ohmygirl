@@ -10,6 +10,8 @@ export default function ProfilePage() {
   const [displayName, setDisplayName] = useState('')
   const [language, setLanguage] = useState<'tamil' | 'thanglish'>('tamil')
   const [tone, setTone] = useState('romantic')
+  const [defaultReadMinutes, setDefaultReadMinutes] = useState<number>(5)
+  const [tonePresets, setTonePresets] = useState<string>('')
   const [savedMsg, setSavedMsg] = useState<string | null>(null)
 
   useEffect(() => {
@@ -25,6 +27,8 @@ export default function ProfilePage() {
         setDisplayName(meta.display_name || '')
         setLanguage(meta.language === 'thanglish' ? 'thanglish' : 'tamil')
         setTone(meta.tone || 'romantic')
+        setDefaultReadMinutes(Number.isFinite(meta.default_read_minutes) ? Number(meta.default_read_minutes) : 5)
+        if (Array.isArray(meta.tone_presets)) setTonePresets(meta.tone_presets.join(', '))
       } catch (e: any) {
         setError(e?.message || 'Failed to load profile')
       } finally { setLoading(false) }
@@ -35,7 +39,8 @@ export default function ProfilePage() {
   const save = async () => {
     try {
       setSavedMsg(null)
-      const { error } = await supabase.auth.updateUser({ data: { display_name: displayName, language, tone } })
+      const presets = tonePresets.split(',').map(s => s.trim()).filter(Boolean)
+      const { error } = await supabase.auth.updateUser({ data: { display_name: displayName, language, tone, default_read_minutes: defaultReadMinutes, tone_presets: presets } })
       if (error) throw error
       setSavedMsg('Profile saved')
     } catch (e: any) {
@@ -74,6 +79,16 @@ export default function ProfilePage() {
               <input className="mt-1 w-full border rounded-md p-2" value={tone} onChange={(e) => setTone(e.target.value)} />
             </div>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm">Default story read time (minutes)</label>
+              <input type="number" min={1} max={20} className="mt-1 w-full border rounded-md p-2" value={defaultReadMinutes} onChange={(e) => setDefaultReadMinutes(Math.min(20, Math.max(1, parseInt(e.target.value || '1'))))} />
+            </div>
+            <div>
+              <label className="block text-sm">Tone presets (comma‑separated)</label>
+              <input className="mt-1 w-full border rounded-md p-2" placeholder="romantic, spicy, playful" value={tonePresets} onChange={(e) => setTonePresets(e.target.value)} />
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             <button onClick={save} className="px-3 py-2 rounded-md border text-sm hover:bg-gray-50">Save</button>
             <button onClick={signOut} className="px-3 py-2 rounded-md border text-sm hover:bg-gray-50">Sign out</button>
@@ -84,4 +99,3 @@ export default function ProfilePage() {
     </div>
   )
 }
-

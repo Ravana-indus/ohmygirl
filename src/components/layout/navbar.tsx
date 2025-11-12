@@ -18,6 +18,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const { theme, toggleTheme } = useTheme()
   const [signedIn, setSignedIn] = useState(false)
+  const [displayName, setDisplayName] = useState<string>('')
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
@@ -25,8 +26,14 @@ export default function Navbar() {
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return
       setSignedIn(!!data.session)
+      const meta: any = data.session?.user?.user_metadata || {}
+      if (meta?.display_name) setDisplayName(String(meta.display_name))
     }).catch(() => setSignedIn(false))
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setSignedIn(!!session))
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setSignedIn(!!session)
+      const meta: any = session?.user?.user_metadata || {}
+      setDisplayName(meta?.display_name || '')
+    })
     return () => { mounted = false; sub?.subscription?.unsubscribe() }
   }, [])
 
@@ -60,6 +67,11 @@ export default function Navbar() {
               <Link href="/auth/signup" className="px-3 py-1.5 rounded-md border hover:border-gray-300 dark:hover:border-neutral-700">Sign up</Link>
             </>
           )}
+          {signedIn && (
+            <Link href="/profile" className="px-3 py-1.5 rounded-md border hover:border-gray-300 dark:hover:border-neutral-700">
+              {displayName ? `Hi, ${displayName}` : 'Profile'}
+            </Link>
+          )}
         </nav>
         <div className="md:hidden">
           <button onClick={() => setMobileOpen(v => !v)} className="px-3 py-1.5 rounded-md border hover:border-gray-300 dark:hover:border-neutral-700">Menu</button>
@@ -78,6 +90,11 @@ export default function Navbar() {
               {items.map(it => (
                 <Link key={it.href} href={it.href} onClick={() => setMobileOpen(false)} className={`px-3 py-2 rounded-md border ${pathname === it.href ? 'border-black dark:border-white' : 'hover:border-gray-300 dark:hover:border-neutral-700'}`}>{it.name}</Link>
               ))}
+              {signedIn && (
+                <Link href="/profile" onClick={() => setMobileOpen(false)} className={`px-3 py-2 rounded-md border ${pathname === '/profile' ? 'border-black dark:border-white' : 'hover:border-gray-300 dark:hover:border-neutral-700'}`}>
+                  {displayName ? `Hi, ${displayName}` : 'Profile'}
+                </Link>
+              )}
             </div>
             <div className="pt-2 border-t">
               {signedIn ? (
