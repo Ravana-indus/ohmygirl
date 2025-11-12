@@ -1,17 +1,21 @@
-'use client'
+"use client"
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import supabase from '@/lib/supabase-browser'
+import { CreditPackages } from '@/components/wallet/packages'
 
 interface WalletRow { id: string; user_id: string; balance_microcredits: number; created_at?: string; updated_at?: string }
 interface WalletTxn { id: string; user_id: string; kind: string; amount_microcredits: number; balance_microcredits: number; request_id?: string | null; note?: string | null; created_at: string }
 
 export default function WalletPage() {
+  const search = useSearchParams()
   const [wallet, setWallet] = useState<WalletRow | null>(null)
   const [txns, setTxns] = useState<WalletTxn[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [topupUSD, setTopupUSD] = useState<number>(10)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -30,6 +34,12 @@ export default function WalletPage() {
   }
 
   useEffect(() => { load() }, [])
+  useEffect(() => {
+    const ok = search?.get('success') === '1'
+    const canceled = search?.get('canceled') === '1'
+    if (ok) setNotice('Payment successful. Credits will reflect shortly.')
+    else if (canceled) setNotice('Checkout canceled.')
+  }, [search])
 
   const balanceLKR = wallet ? wallet.balance_microcredits / 1_000_000 : 0
 
@@ -39,6 +49,12 @@ export default function WalletPage() {
         <h1 className="text-2xl font-bold">Wallet</h1>
         <button onClick={load} className="px-3 py-2 rounded-md border text-sm">Refresh</button>
       </div>
+
+      {notice && (
+        <div className="text-sm border rounded-md p-3 bg-green-50 border-green-200 text-green-800">
+          {notice}
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-500">{error}</p>}
       {loading ? (
@@ -68,6 +84,9 @@ export default function WalletPage() {
                 } catch (e: any) { alert(e?.message || 'Failed to start checkout') }
               }}>Pay with Stripe</button>
               <p className="text-xs text-gray-500">Credits added after payment. Rate: $1 ≈ LKR 320.</p>
+            </div>
+            <div className="mt-4">
+              <CreditPackages compact />
             </div>
           </section>
 
