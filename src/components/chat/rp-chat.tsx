@@ -46,6 +46,7 @@ export function RPChat({
   const [isRecording, setIsRecording] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const [loadingHistory, setLoadingHistory] = useState(true)
   const [historyError, setHistoryError] = useState<string | null>(null)
   const [sendingError, setSendingError] = useState<string | null>(null)
@@ -320,37 +321,22 @@ export function RPChat({
 
   return (
     <div className={`flex flex-col h-full bg-[#0b141a] text-[#e9edef] ${theme} animate-fade-in`}>
-      {/* Header: fixed on mobile, sticky on md+ */}
-      <div className="fixed inset-x-0 top-0 z-30 flex items-center justify-between px-4 py-3 border-b border-[#1f2a30] bg-[#202c33] shadow-sm md:sticky md:inset-auto md:top-0 md:z-10">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-full bg-[#25d366]/10 border border-[#25d366]/40 flex items-center justify-center shadow">
-              <span className="text-[#25d366] font-semibold text-sm">AI</span>
-            </div>
-            <div>
-              <h3 className="font-semibold text-[#e9edef]">{aiCharacter.name}</h3>
-              <p className="text-xs text-[#b9c3c8]">
-                {aiCharacter.role}
-                {aiCharacter.gender ? ` • ${aiCharacter.gender}` : ''}
-              </p>
-            </div>
+      {/* Header: fixed on mobile, sticky on md+ (WhatsApp-style: show contact only) */}
+      <div className="fixed inset-x-0 top-14 z-30 flex items-center justify-between px-4 py-3 border-b border-[#1f2a30] bg-[#202c33] shadow-sm md:sticky md:inset-auto md:top-0 md:z-10">
+        <button
+          type="button"
+          onClick={() => setProfileOpen(true)}
+          className="group flex items-center space-x-3 focus:outline-none"
+          aria-label="Open profile"
+        >
+          <div className="w-10 h-10 rounded-full bg-[#25d366]/10 border border-[#25d366]/40 flex items-center justify-center shadow">
+            <span className="text-[#25d366] font-semibold text-sm">AI</span>
           </div>
-
-          <div className="w-px h-8 bg-border" />
-
-          <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-full bg-[#d1f4cc]/10 border border-[#d1f4cc]/30 flex items-center justify-center shadow">
-              <span className="text-[#d1f4cc] font-semibold text-sm">U</span>
-            </div>
-            <div>
-              <h3 className="font-semibold text-[#e9edef]">{userCharacter.name}</h3>
-              <p className="text-xs text-[#b9c3c8]">
-                {userCharacter.role}
-                {userCharacter.gender ? ` • ${userCharacter.gender}` : ''}
-              </p>
-            </div>
+          <div className="text-left">
+            <h3 className="font-semibold text-[#e9edef] leading-tight">{aiCharacter.name}</h3>
+            <p className="text-xs text-[#b9c3c8] leading-tight">{aiCharacter.role}{aiCharacter.gender ? ` • ${aiCharacter.gender}` : ''}</p>
           </div>
-        </div>
+        </button>
 
         <div className="flex items-center space-x-2">
           <Button
@@ -376,7 +362,7 @@ export function RPChat({
 
       {/* Messages */}
       <div
-        className="flex-1 overflow-y-auto p-4 pt-[calc(3.5rem+env(safe-area-inset-top))] pb-[calc(7rem+env(safe-area-inset-bottom))] md:pt-4 md:pb-28 space-y-4 scrollbar-hide"
+        className="flex-1 overflow-y-auto p-4 pt-4 pb-[calc(7rem+env(safe-area-inset-bottom))] md:pt-4 md:pb-28 space-y-4 scrollbar-hide"
         style={chatBackgroundStyle}
       >
         {loadingHistory ? (
@@ -572,6 +558,40 @@ export function RPChat({
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Modal */}
+      {profileOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="fixed inset-0" onClick={() => setProfileOpen(false)} />
+          <div className="bg-[#202c33] border border-[#1f2a30] rounded-lg shadow-lg p-6 w-full max-w-sm relative text-[#e9edef]">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-[#25d366]/10 border border-[#25d366]/40 flex items-center justify-center shadow">
+                <span className="text-[#25d366] font-semibold">AI</span>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">{aiCharacter.name}</h2>
+                <p className="text-sm text-[#b9c3c8]">{aiCharacter.role}{aiCharacter.gender ? ` • ${aiCharacter.gender}` : ''}</p>
+              </div>
+            </div>
+            {aiCharacter?.traits && Object.keys(aiCharacter.traits).length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-medium mb-2">Traits</h3>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {Object.entries(aiCharacter.traits).map(([k,v]) => (
+                    <div key={String(k)} className="flex justify-between gap-2">
+                      <span className="text-[#b9c3c8]">{k}</span>
+                      <span className="truncate">{String(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="mt-6 flex justify-end">
+              <Button variant="ghost" onClick={() => setProfileOpen(false)}>Close</Button>
             </div>
           </div>
         </div>
